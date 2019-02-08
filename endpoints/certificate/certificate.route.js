@@ -8,6 +8,6 @@ const router = Router();
 router.route("/create").post(validate(createScheme), certificateCtrl.create);
 router
   .route("/retrieveKey")
-  .post(validate(retrieveScheme), certificateCtrl.retrieve);
+  .post(validate(retrieveScheme), certificateCtrl.retrieveKey);
 
 export default router;
