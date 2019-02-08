@@ -1,13 +1,12 @@
 import cryptico from "cryptico";
 import AES from "crypto-js/aes";
 import httpStatus from "http-status";
-import { performance } from "perf_hooks";
 
 import registerService from "../../services/register.service";
 
 import logger from "../../config/Log";
 
-const createAndRetrieve = async (req, res, next) => {
+const create = async (req, res, next) => {
   // TODO unmock affiliation
   const {
     seed,
@@ -18,8 +17,6 @@ const createAndRetrieve = async (req, res, next) => {
   } = req.body;
 
   try {
-    const t0 = performance.now();
-
     logger.info("Generating RSA key");
     const key = cryptico.generateRSAKey(seed, 1024);
     const encryptionKey = JSON.stringify(key);
@@ -35,13 +32,6 @@ const createAndRetrieve = async (req, res, next) => {
     const encryptedCert = AES.encrypt(signedCertPEM, encryptionKey).toString();
     const encryptedKey = AES.encrypt(privateKeyPEM, encryptionKey).toString();
 
-    const t1 = performance.now();
-    console.log("=======================================");
-    console.log("=======================================");
-    console.log(`Call to doSomething took ${t1 - t0} milliseconds.`);
-    console.log("=======================================");
-    console.log("=======================================");
-
     res
       .status(httpStatus.OK)
       .json({ encryptedCert, encryptedKey, encryptionKey: key });
@@ -53,4 +43,21 @@ const createAndRetrieve = async (req, res, next) => {
   }
 };
 
-export default { createAndRetrieve };
+const retrieveKey = (req, res, next) => {
+  const { seed } = req.body;
+
+  try {
+    logger.info("Generating RSA key");
+    const key = cryptico.generateRSAKey(seed, 1024);
+    const encryptionKey = JSON.stringify(key);
+
+    res.status(httpStatus.OK).json({ encryptionKey });
+  } catch (e) {
+    logger.info(
+      `Error happened in retrieve.controller.js (authMicroservice): ${e}`
+    );
+    next(e);
+  }
+};
+
+export default { create, retrieveKey };
